@@ -1,0 +1,25 @@
+id: "tracker-manager"
+name: "Tracker Manager"
+version: "1.0.0"
+author: "YouROK"
+description: "Global torrent tracker policy and list manager"
+theme_ui: false
+entry: "service.js"
+icon: "/img/ico-retrackers.svg"
+
+events: []
+
+routes:
+  - "/"
+  - "/index.html"
+  - "/js/*"
+  - "/img/*"
+  - "/api/config"
+  - "/api/save"
+
+menu:
+  - title: "Tracker Manager"
+    title_key: "plugin.tracker-manager.title"
+    route: "/"
+    rank: 100
+    icon: "/img/ico-retrackers.svg"
