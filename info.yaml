@@ -1,6 +1,6 @@
 id: "tracker-manager"
 name: "Tracker Manager"
-version: "1.0.0"
+version: "0.0.3"
 author: "YouROK"
 description: "Global torrent tracker policy and list manager"
 theme_ui: false
