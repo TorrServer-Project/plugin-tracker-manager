@@ -3,10 +3,10 @@ name: Release Plugin
 on:
   push:
     tags:
-      - 'v*'        # сработает на теги вида v1.0.0, v2.3.1 и т.п.
+      - 'v*'
 
 permissions:
-  contents: write   # нужно, чтобы создать Release
+  contents: write
 
 jobs:
   build:
@@ -16,14 +16,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get version from tag
+      - name: Debug structure
+        run: |
+          pwd
+          find . -name "info.yaml" -not -path "*/node_modules/*"
+
+      - name: Get version
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Build ZIP
         run: |
-          cd tracker-manager
-          zip -r ../tracker-manager-${{ steps.version.outputs.VERSION }}.zip .
+          PLUGIN_DIR=$(dirname "$(find . -name info.yaml -not -path './.git/*' | head -n1)")
+          echo "Плагин найден в: $PLUGIN_DIR"
+          cd "$PLUGIN_DIR"
+          zip -r "$GITHUB_WORKSPACE/tracker-manager-${{ steps.version.outputs.VERSION }}.zip" .
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
