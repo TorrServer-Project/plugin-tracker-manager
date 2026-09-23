@@ -76,7 +76,12 @@ jobs:
           PLUGIN_DIR="${{ steps.meta.outputs.plugin_dir }}"
 
           ZIP_NAME="${ID}-v${VERSION}.zip"
-          (cd "$PLUGIN_DIR" && zip -r "$GITHUB_WORKSPACE/$ZIP_NAME" .)
+
+          (cd "$PLUGIN_DIR" && zip -r "$GITHUB_WORKSPACE/$ZIP_NAME" . \
+            -x ".*" \
+            -x "*/.*" \
+            -x "__MACOSX/*" \
+            -x "*.DS_Store")
 
           SIZE=$(stat -c%s "$ZIP_NAME")
           SHA256=$(sha256sum "$ZIP_NAME" | awk '{print $1}')
