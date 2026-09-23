@@ -3,7 +3,7 @@ name: Release Plugin
 on:
   push:
     tags:
-      - '*'   # тег = версия из info.yaml, любой формат
+      - '*'   # тег = version из info.yaml, любой формат
 
 permissions:
   contents: write
@@ -27,7 +27,7 @@ jobs:
         id: meta
         run: |
           python3 - <<'PY'
-          import os, yaml, sys, json
+          import os, yaml, sys
           info_path = None
           for root, dirs, files in os.walk('.'):
               dirs[:] = [d for d in dirs if d not in ('.git',)]
@@ -51,7 +51,6 @@ jobs:
               'description': info.get('description', ''),
               'icon_rel':    icon_rel,
           }
-          # min_silo_version — только если есть
           if info.get('min_silo_version'):
               out['min_silo'] = info['min_silo_version']
 
@@ -69,35 +68,21 @@ jobs:
             exit 1
           fi
 
-      - name: Build ZIP and extract icon
+      - name: Build ZIP
         id: build
         run: |
           ID="${{ steps.meta.outputs.id }}"
           VERSION="${{ steps.meta.outputs.version }}"
           PLUGIN_DIR="${{ steps.meta.outputs.plugin_dir }}"
-          ICON_REL="${{ steps.meta.outputs.icon_rel }}"
 
           ZIP_NAME="${ID}-v${VERSION}.zip"
           (cd "$PLUGIN_DIR" && zip -r "$GITHUB_WORKSPACE/$ZIP_NAME" .)
-
-          ICON_NAME=""
-          if [ -n "$ICON_REL" ]; then
-            ICON_EXT="${ICON_REL##*.}"
-            ICON_NAME="${ID}-icon.${ICON_EXT}"
-            ICON_PATH="$PLUGIN_DIR/$ICON_REL"
-            if [ ! -f "$ICON_PATH" ]; then
-              echo "::error::Иконка не найдена: $ICON_PATH"
-              exit 1
-            fi
-            cp "$ICON_PATH" "$ICON_NAME"
-          fi
 
           SIZE=$(stat -c%s "$ZIP_NAME")
           SHA256=$(sha256sum "$ZIP_NAME" | awk '{print $1}')
 
           {
             echo "zip_name=$ZIP_NAME"
-            echo "icon_name=$ICON_NAME"
             echo "size=$SIZE"
             echo "sha256=$SHA256"
           } >> $GITHUB_OUTPUT
@@ -110,15 +95,23 @@ jobs:
           AUTHOR:      ${{ steps.meta.outputs.author }}
           DESCRIPTION: ${{ steps.meta.outputs.description }}
           MIN_SILO:    ${{ steps.meta.outputs.min_silo }}
+          ICON_REL:    ${{ steps.meta.outputs.icon_rel }}
           ZIP_NAME:    ${{ steps.build.outputs.zip_name }}
-          ICON_NAME:   ${{ steps.build.outputs.icon_name }}
           SIZE:        ${{ steps.build.outputs.size }}
           SHA256:      ${{ steps.build.outputs.sha256 }}
         run: |
           python3 - <<'PY'
           import json, os
-          base = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{os.environ['GITHUB_REF_NAME']}"
-          icon_name = os.environ.get('ICON_NAME', '')
+
+          repo = os.environ['GITHUB_REPOSITORY']  # YouROK/tracker-manager
+          tag  = os.environ['GITHUB_REF_NAME']    # 0.0.3
+
+          base     = f"https://github.com/{repo}/releases/download/{tag}"
+          icon_rel = os.environ.get('ICON_REL', '').strip()
+          icon_url = (
+              f"https://raw.githubusercontent.com/{repo}/{tag}/{icon_rel}"
+              if icon_rel else ""
+          )
 
           info = {
               "id":           os.environ['ID'],
@@ -126,13 +119,13 @@ jobs:
               "version":      os.environ['VERSION'],
               "author":       os.environ['AUTHOR'],
               "description":  os.environ['DESCRIPTION'],
-              "icon":         f"{base}/{icon_name}" if icon_name else "",
+              "icon":         icon_url,
               "download_url": f"{base}/{os.environ['ZIP_NAME']}",
               "size":         int(os.environ['SIZE']),
               "sha256":       os.environ['SHA256'],
-              "homepage":     f"https://github.com/{os.environ['GITHUB_REPOSITORY']}",
+              "homepage":     f"https://github.com/{repo}",
           }
-          # min_silo_version — только если задан
+
           min_silo = os.environ.get('MIN_SILO', '').strip()
           if min_silo:
               info["min_silo_version"] = min_silo
@@ -149,6 +142,5 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: |
             ${{ steps.build.outputs.zip_name }}
-            ${{ steps.build.outputs.icon_name }}
             info.json
           generate_release_notes: true
