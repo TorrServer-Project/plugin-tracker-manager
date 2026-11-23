@@ -24,9 +24,32 @@
         .panel {
             max-width: 100%;
         }
+        /* Короткий список политик не растягиваем на всю панель */
+        .select-policy {
+            max-width: 320px;
+        }
+        /* Список трекеров: моноширинный шрифт и ручной размер */
+        .code-area {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+        /* Кнопки панели прижаты вправо */
+        .actions-row {
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
         @media (max-width: 767px) {
             .page-wrap {
-                padding: 16px;
+                padding: 12px;
+            }
+            .select-policy {
+                max-width: 100%;
+            }
+            /* Список занимает часть экрана, чтобы кнопки оставались на виду */
+            .code-area {
+                height: 44vh;
+                min-height: 160px;
             }
         }
     </style>
@@ -47,7 +70,7 @@
                     <legend data-i18n="plugin.tracker-manager.policy">Tracker Policy</legend>
                     <label class="field">
                         <span data-i18n="plugin.tracker-manager.policy_desc">Choose how trackers are applied to new torrents</span>
-                        <select class="input" id="policy" style="max-width: 320px;">
+                        <select class="input select-policy" id="policy">
                             <option value="append" data-i18n="plugin.tracker-manager.policy_append">Add to existing</option>
                             <option value="replace" data-i18n="plugin.tracker-manager.policy_replace">Replace existing</option>
                             <option value="remove" data-i18n="plugin.tracker-manager.policy_remove">Remove all trackers (DHT only)</option>
@@ -61,16 +84,18 @@
                     <label class="field">
                         <span data-i18n="plugin.tracker-manager.trackers_desc">One tracker per line</span>
                         <textarea
-                                class="input"
+                                class="input code-area"
                                 id="trackers"
                                 rows="14"
                                 placeholder="http://tracker.example.com/announce"
-                                style="font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: vertical;"
+                                autocapitalize="off"
+                                autocorrect="off"
+                                spellcheck="false"
                         ></textarea>
                     </label>
                 </fieldset>
 
-                <div class="row" style="justify-content: flex-end; margin-top: 8px;">
+                <div class="row actions-row">
                     <button class="btn btn-secondary" id="btn-default" type="button" data-i18n="plugin.tracker-manager.default">Restore Defaults</button>
                     <button class="btn" id="btn-save" type="button" data-i18n="plugin.tracker-manager.save">Save & Apply</button>
                 </div>
@@ -79,7 +104,7 @@
     </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<div id="toast-root" class="toast-root"></div>
 
 <script src="/plugins/tracker-manager/js/app.js"></script>
 </body>

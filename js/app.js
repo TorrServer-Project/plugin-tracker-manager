@@ -2,12 +2,22 @@
 
 const t = (key, def) => i18n.t(key, def);
 
+// toast добавляет уведомление в общий контейнер: оформление
+// и анимацию задает общий стиль.
 function toast(msg) {
-    const el = document.getElementById('toast');
-    if (!el) return;
+    const root = document.getElementById('toast-root');
+    if (!root) return;
+
+    const el = document.createElement('div');
+    el.className = 'toast';
     el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2500);
+    root.appendChild(el);
+
+    requestAnimationFrame(() => el.classList.add('toast-show'));
+    setTimeout(() => {
+        el.classList.remove('toast-show');
+        setTimeout(() => el.remove(), 300);
+    }, 2500);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
